@@ -8,13 +8,22 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-    public DbSet<GameMatch> Matches => Set<GameMatch>();
+    public DbSet<Match> Matches => Set<Match>();
     public DbSet<MatchPlayer> MatchPlayers => Set<MatchPlayer>();
     public DbSet<MatchPlayerRole> MatchPlayerRoles => Set<MatchPlayerRole>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // 👇 ДОБАВЬ ВОТ ЭТО
+        builder.Entity<AppUser>()
+            .Property(x => x.Balance)
+            .HasPrecision(18, 2);
+
+        builder.Entity<Match>()
+            .Property(x => x.EntryFee)
+            .HasPrecision(18, 2);
 
         builder.Entity<Match>()
             .HasOne(m => m.Organizer)
@@ -23,13 +32,15 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<MatchPlayer>()
-            .HasIndex(mp => new { mp.MatchId, mp.UserId })
-            .IsUnique();
-
-        builder.Entity<MatchPlayerRole>()
-            .HasOne(r => r.MatchPlayer)
-            .WithMany(mp => mp.Roles)
-            .HasForeignKey(r => r.MatchPlayerId)
+            .HasOne(mp => mp.Match)
+            .WithMany(m => m.MatchPlayers)
+            .HasForeignKey(mp => mp.MatchId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MatchPlayer>()
+            .HasOne(mp => mp.User)
+            .WithMany()
+            .HasForeignKey(mp => mp.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
