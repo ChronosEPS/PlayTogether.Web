@@ -20,6 +20,7 @@ builder.Services.AddDefaultIdentity<AppUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
@@ -44,7 +45,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-    context.Database.Migrate();
+    await context.Database.MigrateAsync();
     await DbSeeder.SeedAsync(context, userManager);
 }
 
