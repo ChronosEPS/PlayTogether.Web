@@ -5,7 +5,7 @@ public class MatchPlayer
     public int Id { get; set; }
 
     public int MatchId { get; set; }
-    public GameMatch Match { get; set; } = null!;
+    public Match Match { get; set; } = null!;
 
     public string UserId { get; set; } = string.Empty;
     public AppUser User { get; set; } = null!;
