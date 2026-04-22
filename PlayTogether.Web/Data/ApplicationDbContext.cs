@@ -8,13 +8,21 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-    public DbSet<GameMatch> Matches => Set<GameMatch>();
+    public DbSet<Match> Matches => Set<Match>();
     public DbSet<MatchPlayer> MatchPlayers => Set<MatchPlayer>();
     public DbSet<MatchPlayerRole> MatchPlayerRoles => Set<MatchPlayerRole>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<AppUser>()
+            .Property(u => u.Balance)
+            .HasPrecision(18, 2);
+
+        builder.Entity<Match>()
+            .Property(m => m.EntryFee)
+            .HasPrecision(18, 2);
 
         builder.Entity<Match>()
             .HasOne(m => m.Organizer)
