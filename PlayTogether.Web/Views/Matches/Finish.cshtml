@@ -1,0 +1,52 @@
+﻿@model PlayTogether.Web.Models.ViewModels.FinishMatchViewModel
+
+@{
+    ViewData["Title"] = "Finish Match";
+}
+
+<h2>Finish Match</h2>
+
+<form asp-action="Finish" method="post">
+    <input type="hidden" asp-for="MatchId" />
+
+    <div class="mb-3">
+        <label class="form-label">Winning Team</label>
+        <select asp-for="WinningTeam" class="form-select">
+            <option value="A">Team A</option>
+            <option value="B">Team B</option>
+        </select>
+    </div>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Player</th>
+            <th>Team</th>
+            <th>MVP</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (int i = 0; i < Model.Players.Count; i++)
+        {
+            <tr>
+                <td>
+                    @Model.Players[i].DisplayName
+                    <input type="hidden" asp-for="Players[i].UserId" />
+                    <input type="hidden" asp-for="Players[i].DisplayName" />
+                </td>
+                <td>
+                    <select asp-for="Players[i].Team" class="form-select">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                    </select>
+                </td>
+                <td>
+                    <input asp-for="Players[i].IsMVP" type="checkbox" />
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">Finish Match</button>
+</form>

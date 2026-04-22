@@ -1,0 +1,109 @@
+﻿@model IEnumerable<PlayTogether.Web.Models.GameMatch>
+@using PlayTogether.Web.Models
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Matches";
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Matches</h2>
+    @if (isAuthenticated)
+    {
+        <a asp-controller="Matches" asp-action="Create" class="btn btn-primary">+ Create Match</a>
+    }
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Sport</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Entry Fee</th>
+            <th>Players</th>
+            <th>Status</th>
+            <th style="width:360px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var m in Model)
+        {
+            var joinedByMe = currentUserId != null && m.MatchPlayers.Any(x => x.UserId == currentUserId);
+            var isOrganizer = currentUserId != null && m.OrganizerId == currentUserId;
+
+            <tr>
+                <td>@m.Title</td>
+                <td>@m.SportType</td>
+                <td>@m.DateTime.ToString("g")</td>
+                <td>@m.Location</td>
+                <td>@m.EntryFee</td>
+                <td>@m.MatchPlayers.Count / @m.MaxPlayers</td>
+                <td>@m.Status</td>
+                <td>
+                    @* Join *@
+                    @if (isAuthenticated && m.Status == MatchStatus.Open && m.MatchPlayers.Count < m.MaxPlayers && !joinedByMe)
+                    {
+                        <a asp-controller="Matches"
+                               asp-action="Join"
+                               asp-route-id="@m.Id"
+                               class="btn btn-sm btn-success">
+                            Join
+                        </a>
+                    }
+
+                    @* Leave *@
+                    @if (isAuthenticated && m.Status == MatchStatus.Open && joinedByMe)
+                    {
+                        <form asp-controller="Matches"
+                              asp-action="Leave"
+                              asp-route-id="@m.Id"
+                              method="post"
+                              class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Leave</button>
+                        </form>
+                    }
+
+                    @* Finish: Organizer or Admin *@
+                    @if (isAuthenticated && m.Status != MatchStatus.Finished && (isOrganizer || isAdmin))
+                    {
+                        <a asp-controller="Matches"
+                               asp-action="Finish"
+                               asp-route-id="@m.Id"
+                               class="btn btn-sm btn-warning ms-1">
+                            Finish
+                        </a>
+                    }
+
+                    @* Delete: only Organizer (можешь добавить || isAdmin если нужно) *@
+                    @if (isAuthenticated && m.Status != MatchStatus.Finished && isOrganizer)
+                    {
+                        <form asp-controller="Matches"
+                              asp-action="Delete"
+                              asp-route-id="@m.Id"
+                              method="post"
+                              class="d-inline ms-1"
+                              onsubmit="return confirm('Delete this lobby? Refunds will be returned to players.');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
